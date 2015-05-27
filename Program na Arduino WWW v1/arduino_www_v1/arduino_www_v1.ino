@@ -1,5 +1,6 @@
 /*
 25.04.2015 Praca nad zczytwaniem temepratury z seriala
+27.05.2015 Dodawanie czujnika DHT22 poprzez dane z seriala
  Circuit:
  * Ethernet shield attached to pins 10, 11, 12, 13
  * Analog inputs attached to pins A0 through A5 (optional)
@@ -9,114 +10,14 @@
 #include <SPI.h>
 #include <SD.h>
 #include <Ethernet.h>
-//#include <OneWire.h>
-// OneWire  ds(3);
 
 const int chipSelect = 4;
 int delay_tick=0;
 long liczbaPorzadkowa=0;
 float temp=0;
 int odczytZSeriala =0;
-
-
-/*
-float temperaturaOtoczenia(void) {
-   float celsius;
-  byte i;
-  byte present = 0;
-  byte type_s;
-  byte data[12];
-  byte addr[8];
+ int licznik=0;
  
-  
-  if ( !ds.search(addr)) {
-   // Serial.println("No more addresses.");
-   // Serial.println();
-    ds.reset_search();
-    //delay(250);
-  //  return 0,01;
-  }
-  
-  //Serial.print("ROM =");
-  for( i = 0; i < 8; i++) {
-    //Serial.write(' ');
-    //Serial.print(addr[i], HEX);
-  }
-
-  if (OneWire::crc8(addr, 7) != addr[7]) {
-     // Serial.println("CRC is not valid!");
-      return 0,02;
-  }
-  Serial.println();
- 
-  // the first ROM byte indicates which chip
-  switch (addr[0]) {
-    case 0x10:
-  //    Serial.println("  Chip = DS18S20");  // or old DS1820
-      type_s = 1;
-      break;
-    case 0x28:
-    //  Serial.println("  Chip = DS18B20");
-      type_s = 0;
-      break;
-    case 0x22:
-      //Serial.println("  Chip = DS1822");
-      type_s = 0;
-      break;
-    default:
-    //  Serial.println("Device is not a DS18x20 family device.");
-      return 0,03;
-  } 
-
-  ds.reset();
-  
-  ds.select(addr);
-  ds.write(0x44, 1);        // start conversion, with parasite power on at the end
-  
-//  delay(250);     // maybe 750ms is enough, maybe not
-  // we might do a ds.depower() here, but the reset will take care of it.
-  
-  present = ds.reset();
-  ds.select(addr);    
-  ds.write(0xBE);         // Read Scratchpad
-
-  Serial.print("  Data = ");
-  Serial.print(present, HEX);
-  Serial.print(" ");
-  for ( i = 0; i < 9; i++) {           // we need 9 bytes
-    data[i] = ds.read();
-    //Serial.print(data[i], HEX);
-    //Serial.print(" ");
-  }
-  //Serial.print(" CRC=");
-  //Serial.print(OneWire::crc8(data, 8), HEX);
-  //Serial.println();
-
-  // Convert the data to actual temperature
-  // because the result is a 16 bit signed integer, it should
-  // be stored to an "int16_t" type, which is always 16 bits
-  // even when compiled on a 32 bit processor.
-  int16_t raw = (data[1] << 8) | data[0];
-  if (type_s) {
-    raw = raw << 3; // 9 bit resolution default
-    if (data[7] == 0x10) {
-      // "count remain" gives full 12 bit resolution
-      raw = (raw & 0xFFF0) + 12 - data[6];
-    }
-  } else {
-    byte cfg = (data[4] & 0x60);
-    // at lower res, the low bits are undefined, so let's zero them
-    if (cfg == 0x00) raw = raw & ~7;  // 9 bit resolution, 93.75 ms
-    else if (cfg == 0x20) raw = raw & ~3; // 10 bit res, 187.5 ms
-    else if (cfg == 0x40) raw = raw & ~1; // 11 bit res, 375 ms
-    //// default is 12 bit resolution, 750 ms conversion time
-  }
-  celsius = (float)raw / 16.0;
-  return celsius;
-}
-
-*/
-
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network:
 byte mac[] = { 
@@ -127,52 +28,49 @@ IPAddress ip(192,168,88,88);
 // with the IP address and port you want to use 
 // (port 80 is default for HTTP):
 EthernetServer server(80);
- int licznik=0;
+
  
 void setup() {
  
   pinMode(10, OUTPUT);
   pinMode(2, OUTPUT);
-    pinMode(4, OUTPUT);
+  pinMode(4, OUTPUT);
   digitalWrite(2,LOW);
   digitalWrite(4,HIGH);
- // Open serial communications and wait for port to open:
- Serial.begin(9600);
-  // start the Ethernet connection and the server:
+   // Open serial communications and wait for port to open:
+  Serial.begin(9600);
+    // start the Ethernet connection and the server:
   Ethernet.begin(mac, ip);
   server.begin();
   Serial.print("server is at ");
   Serial.println(Ethernet.localIP());
   Serial.print("Initializing SD card...");
     pinMode(10, OUTPUT);
-    if (!SD.begin(chipSelect)) {
+    
+    if (!SD.begin(chipSelect)) 
+    {
     Serial.println("Card failed, or not present");
     // don't do anything more:
     return;
-  }
+    }
   Serial.println("card initialized.");
   delay(1000);
-  //temp=temperaturaOtoczenia();
 }
 
 
-
-
-void loop() {
+void loop() 
+{
   delay(200);
-  
-  
   delay_tick=delay_tick+1;
   
   if (delay_tick>15)
-  {
+ {
     delay_tick=0;
-    //temp=temperaturaOtoczenia();
-  // make a string for assembling the data to log:
-  //String dataString = "";
 
-  // read three sensors and append to the string:
-  
+//Tutaj funkcja do odczytu danych z seriala:
+
+
+
 
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
@@ -186,7 +84,9 @@ void loop() {
     dataFile.close();
     // print to the serial port too:
     //Serial.println(dataString);
-  }  
+  } 
+ 
+  
   // if the file isn't open, pop up an error:
   else {
     Serial.println("error opening datalog.txt");
@@ -194,13 +94,14 @@ void loop() {
 }
   
   
-  
-  
-  
-  
+    
   // listen for incoming clients
   EthernetClient client = server.available();
-if (client) {
+
+
+
+if (client) 
+{
     Serial.println("new client");
     // an http request ends with a blank line
     boolean currentLineIsBlank = true;
@@ -236,8 +137,7 @@ if (client) {
             client.println(temp);
             client.print("<br>Odczyt z Seriala:");
             odczytSeriala();
-             client.println(odczytZSeriala);
-            
+             client.println(odczytZSeriala)
             
             client.println("</h1>");       
           }
