@@ -70,11 +70,14 @@ void loop()
   */
   
   //Serial print dla sterownika WWW:
-  Serial.print("<");
+  
+  /*Serial.print("<");
   Serial.print(t);
   Serial.print(";");
   Serial.print(h);
   Serial.println(">");
+  */
+  Serial.print(t*100);
 
  
 }
