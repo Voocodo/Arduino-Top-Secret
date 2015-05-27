@@ -11,12 +11,23 @@
 #include <SD.h>
 #include <Ethernet.h>
 
+bool started = false;
+bool ended = false;
+
 const int chipSelect = 4;
 int delay_tick=0;
 long liczbaPorzadkowa=0;
 float temp=0;
 int odczytZSeriala =0;
  int licznik=0;
+ float temperature =0;
+ float humidity= 0;
+#define SOP '<'
+#define EOP '>'
+#define VAR ';'
+char inData[4];
+int IndexVariable=0;
+byte index;
  
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network:
@@ -29,6 +40,57 @@ IPAddress ip(192,168,88,88);
 // (port 80 is default for HTTP):
 EthernetServer server(80);
 
+////////////////////
+void readFrame(){
+// Read all serial data available, as fast as possible
+while(Serial.available() > 0){
+    char inChar = Serial.read();
+    Serial.println(inChar);
+if(inChar == SOP){
+       index = 0;
+       IndexVariable=0;
+       inData[index] = '\0';
+       started = true;
+       ended = false;}
+else if(inChar == EOP){
+       //SDsave();
+       ended = true;
+      // break;
+     }     
+else{
+  if(index <= 22){
+    inData[index] = inChar;
+       index++;
+    inData[index] = '\0';
+      }
+    }
+    
+  }
+
+  // We are here either because all pending serial
+  // data has been read OR because an end of
+  // packet marker arrived. Which is it?
+  if(started && ended)
+  {
+    // The end of packet marker arrived. Process the packet
+
+    // Reset for the next packet
+    started = false;
+    ended = false;
+    index = 0;
+    inData[index] = '\0';
+  }
+}
+
+///////////////////
+
+void czytajDane()
+{
+ readFrame();
+ temperature=inData[0];
+ humidity=inData[1];
+  
+}
  
 void setup() {
  
@@ -60,7 +122,8 @@ void setup() {
 
 void loop() 
 {
-  delay(200);
+  czytajDane();
+  delay(100);
   delay_tick=delay_tick+1;
   
   if (delay_tick>15)
@@ -133,11 +196,12 @@ if (client)
             client.print("<h1>A");
             client.print(":");
             client.println(sensorReading);
+            
+            //Wyswietlenie temp i wilg:
             client.print("<br>Temperatura:");
-            client.println(temp);
-            client.print("<br>Odczyt z Seriala:");
-            odczytSeriala();
-             client.println(odczytZSeriala)
+            client.println(temperature);
+            client.print("<br>Wilgotnosc:");
+            client.println(humidity);
             
             client.println("</h1>");       
           }
