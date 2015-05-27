@@ -1,5 +1,7 @@
-// 25.04.2015 
+// 25.04.2015 start
+// 27.05.2015 praca nad 433
 // Test Gtihub
+
 // Example testing sketch for various DHT humidity/temperature sensors
 // Written by ladyada, public domain
 
@@ -30,17 +32,18 @@ DHT dht(DHTPIN, DHTTYPE);
 // Example to initialize DHT sensor for Arduino Due:
 //DHT dht(DHTPIN, DHTTYPE, 30);
 
-void setup() {
+void setup() 
+{
   Serial.begin(9600); 
   Serial.println("DHTxx test!");
- 
+  //Using DHT sensor: 
   dht.begin();
 }
 
-void loop() {
+void loop() 
+{
   // Wait a few seconds between measurements.
   delay(2000);
-
   // Reading temperature or humidity takes about 250 milliseconds!
   // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
   float h = dht.readHumidity();
@@ -54,7 +57,6 @@ void loop() {
     Serial.println("Failed to read from DHT sensor!");
     return;
   }
-
   // Compute heat index
   // Must send in temp in Fahrenheit!
   float hi = dht.computeHeatIndex(f, h);
