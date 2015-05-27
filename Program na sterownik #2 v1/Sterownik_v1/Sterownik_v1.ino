@@ -60,16 +60,21 @@ void loop()
   // Compute heat index
   // Must send in temp in Fahrenheit!
   float hi = dht.computeHeatIndex(f, h);
-
-  Serial.print("Humidity: "); 
-  Serial.print(h);
-  Serial.print(" %\t");
+/*
   Serial.print("Temperature: "); 
   Serial.print(t);
   Serial.print(" *C ");
-  Serial.print(f);
-  Serial.print(" *F\t");
-  Serial.print("Heat index: ");
-  Serial.print(hi);
-  Serial.println(" *F");
+  Serial.print("--- Humidity: "); 
+  Serial.print(h);
+  Serial.println(" %\t");
+  */
+  
+  //Serial print dla sterownika WWW:
+  Serial.print("<");
+  Serial.print(t);
+  Serial.print(";");
+  Serial.print(h);
+  Serial.println(">");
+
+ 
 }
